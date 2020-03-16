@@ -26,4 +26,4 @@ const server = new ApolloServer({
 // サーバーに対してlisten関数を実行することで、httpサーバーが待ち受けを開始
 server
     .listen()
-    .then(({url}) => Console.log('GraphQL Server running on ${url}'))
+    .then(({url}) => console.log('GraphQL Server running on ${url}'))

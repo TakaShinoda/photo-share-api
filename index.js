@@ -3,11 +3,29 @@ const {ApolloServer} = require('apollo-server')
 
 // 文字列としてスキーマを定義
 const typeDefs = `
+    # enum型の定義
+    enum PhotoCategory {
+        SELFIE
+        PORTRAIT
+        ACTION
+        LANDSCAPE
+        GRAPHIC
+    }
+
     # photo型の定義
     type Photo {
         id: ID!
         url: String!
         name: String!
+        description: String
+        category: PhotoCategory!
+    }
+
+    #入力型の定義
+    input PostPhotoInput {
+        name: String!
+        #categoryフィールドを指定しない場合デフォルトでPORTRAITが適用
+        category: PhotoCategory=PORTRAIT
         description: String
     }
 
@@ -19,7 +37,7 @@ const typeDefs = `
 
     # Mutationによって新たに投稿されたPhotoを返す
     type Mutation {
-        postPhoto(name: String! description: String): Photo!
+        postPhoto(input: PostPhotoInput!): Photo!
     }
 `
 
@@ -38,7 +56,7 @@ const resolvers = {
         postPhoto(parent, args) {
             let newPhoto = {
                 id: _id++,
-                ...args
+                ...args.input
             }
             photos.push(newPhoto)
             return newPhoto

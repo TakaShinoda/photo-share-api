@@ -1,6 +1,6 @@
 # PhotoShare API
 
-## GraphQLサーバの実装
+### GraphQLサーバの実装
 - apollo-server
 - graphql
 - nodemon

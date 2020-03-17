@@ -34,6 +34,7 @@ const resolvers = {
         allPhotos: () => photos
     },
     Mutation: {
+        // args変数は{name.description}2つのフィールドを含むオブジェクト
         postPhoto(parent, args) {
             let newPhoto = {
                 id: _id++,
@@ -42,6 +43,10 @@ const resolvers = {
             photos.push(newPhoto)
             return newPhoto
         }
+    },
+    // スキーマ内の各フィールドはリゾルバ内にマッピングできる
+    Photo: {
+        url: parent => `http://yoursite.com/img/${parent.id}.jpg`
     }
 }
 

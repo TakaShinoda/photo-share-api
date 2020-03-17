@@ -1,17 +1,31 @@
 // apollo-serverモジュールの読み込み
 const {ApolloServer} = require('apollo-server')
 
+// 文字列としてスキーマを定義
 const typeDefs = `
     type Query {
         totalPhoto: Int!
+    }
+
+    type Mutation {
+        postPhoto(name: String! description: String): Boolean!
     }
 `
 
 // リゾルバはスキーマの定義を満たす
 // スキーマで定義されたフィールド名と同じ名前を持ち，スキーマで定義されたデータ型の結果を返す
+
+let photos = []
+
 const resolvers = {
     Query: {
-        totalPhoto: () => 42
+        totalPhoto: () => photos.length
+    },
+    Mutation: {
+        postPhoto(parent, args) {
+            photos.push(args)
+            return true
+        }
     }
 }
 

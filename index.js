@@ -8,6 +8,8 @@ const typeDefs = `
         name: String
         avatar: String
         postedPhotos: [Photo!]!
+        # ユーザが写っている写真のリストを返す
+        inPhotos: [Photo!]!
     }
 
     # enum型の定義
@@ -27,6 +29,8 @@ const typeDefs = `
         description: String
         category: PhotoCategory!
         postedBy: User!
+        # タグ付けされているユーザのリストを返す
+        taggedUsers: [User!]!
     }
 
     #入力型の定義
@@ -82,6 +86,13 @@ let photos = [
     }
 ]
 
+let tags = [
+    { "photoID": "1", "userID": "gPlake"},
+    { "photoID": "2", "userID": "sSchmidt"},
+    { "photoID": "2", "userID": "mHattrup"},
+    { "photoID": "2", "userID": "gPlake"}
+]
+
 const resolvers = {
     Query: {
         totalPhoto: () => photos.length,
@@ -103,13 +114,25 @@ const resolvers = {
         url: parent => `http://yoursite.com/img/${parent.id}.jpg`,
         postedBy: parent => {
             return users.find(u => u.githubLogin == parent.githubUser)
-        }
+        },
+        taggedUsers: parent => tags
+            // 対象写真が関係しているタグの配列を探す
+            .filter(tag => tag.photoID == parent.id)
+            // タグの配列をユーザIDの配列に変換
+            .map(tag => tag.userID)
+            // ユーザID配列をユーザオブジェクトの配列に変換
+            .map(userID => users.find(u => u.githubLogin == userID))
     },
 
     User: {
         postedPhotos: parent => {
             return photos.filter(p => p.githubUser == parent.githubLogin)
-        }
+        },
+        inPhotos: parent => tags
+            .filter(tag => tag.userID == parent.id)
+            .map(tag => tag.photoID)
+            .map(photoID => photos.find(p => p.id == photoID))
+        
     }
 
 }

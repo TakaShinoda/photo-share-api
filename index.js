@@ -3,6 +3,13 @@ const {ApolloServer} = require('apollo-server')
 
 // 文字列としてスキーマを定義
 const typeDefs = `
+    type User {
+        githubLogin: ID!
+        name: String
+        avatar: String
+        postedPhotos: [Photo!]!
+    }
+
     # enum型の定義
     enum PhotoCategory {
         SELFIE
@@ -19,6 +26,7 @@ const typeDefs = `
         name: String!
         description: String
         category: PhotoCategory!
+        postedBy: User!
     }
 
     #入力型の定義
@@ -44,7 +52,35 @@ const typeDefs = `
 // リゾルバはスキーマの定義を満たす
 // スキーマで定義されたフィールド名と同じ名前を持ち，スキーマで定義されたデータ型の結果を返す
 let _id = 0
-let photos = []
+let users = [
+    { "githubLogin": "mHattrup", "name": "Mike Hattrup" },
+    { "githubLogin": "test1", "name": "user1" },
+    { "githubLogin": "test2", "name": "user2" },
+]
+let photos = [
+    {
+        "id": "1",
+        "name": "aaaaa",
+        "description": "the aaaa",
+        "category": "ACTION",
+        "githubUser": "hoge1"
+    },
+    {
+        "id": "2",
+        "name": "bbb",
+        "description": "the aacccaa",
+        "githubUser": "hoge2"
+
+    },
+    {
+        "id": "3",
+        "name": "ccc",
+        "description": "the baaa",
+        "category": "LANDSCAPE",
+        "githubUser": "hoge3"
+
+    }
+]
 
 const resolvers = {
     Query: {
@@ -64,8 +100,18 @@ const resolvers = {
     },
     // スキーマ内の各フィールドはリゾルバ内にマッピングできる
     Photo: {
-        url: parent => `http://yoursite.com/img/${parent.id}.jpg`
+        url: parent => `http://yoursite.com/img/${parent.id}.jpg`,
+        postedBy: parent => {
+            return users.find(u => u.githubLogin == parent.githubUser)
+        }
+    },
+
+    User: {
+        postedPhotos: parent => {
+            return photos.filter(p => p.githubUser == parent.githubLogin)
+        }
     }
+
 }
 
 // サーバーのインスタンス作成

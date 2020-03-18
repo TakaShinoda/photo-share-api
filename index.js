@@ -1,8 +1,13 @@
 // apollo-serverモジュールの読み込み
-const {ApolloServer} = require('apollo-server')
+const { ApolloServer } = require('apollo-server')
+// graphqlモジュールの読み込み
+const { GraphQLScalarType } = require('graphql')
 
 // 文字列としてスキーマを定義
 const typeDefs = `
+    # カスタムスカラー型
+    scalar DateTime
+
     type User {
         githubLogin: ID!
         name: String
@@ -31,6 +36,7 @@ const typeDefs = `
         postedBy: User!
         # タグ付けされているユーザのリストを返す
         taggedUsers: [User!]!
+        created: DateTime!
     }
 
     #入力型の定義
@@ -44,7 +50,7 @@ const typeDefs = `
     # allphotosはPhotoを返す
     type Query {
         totalPhoto: Int!
-        allPhotos: [Photo!]!
+        allPhotos(after: DateTime): [Photo!]!
     }
 
     # Mutationによって新たに投稿されたPhotoを返す
@@ -53,8 +59,6 @@ const typeDefs = `
     }
 `
 
-// リゾルバはスキーマの定義を満たす
-// スキーマで定義されたフィールド名と同じ名前を持ち，スキーマで定義されたデータ型の結果を返す
 let _id = 0
 let users = [
     { "githubLogin": "mHattrup", "name": "Mike Hattrup" },
@@ -67,13 +71,15 @@ let photos = [
         "name": "aaaaa",
         "description": "the aaaa",
         "category": "ACTION",
-        "githubUser": "hoge1"
+        "githubUser": "hoge1",
+        "created": "3-28-1997"
     },
     {
         "id": "2",
         "name": "bbb",
         "description": "the aacccaa",
-        "githubUser": "hoge2"
+        "githubUser": "hoge2",
+        "created": "1-2-2011"
 
     },
     {
@@ -81,7 +87,8 @@ let photos = [
         "name": "ccc",
         "description": "the baaa",
         "category": "LANDSCAPE",
-        "githubUser": "hoge3"
+        "githubUser": "hoge3",
+        "created": "2018-06-21T19:08:33.308Z"
 
     }
 ]
@@ -93,17 +100,30 @@ let tags = [
     { "photoID": "2", "userID": "gPlake"}
 ]
 
+//let d = new Date('4/18/2018')
+//const serialize = value => new Date(value).toISOString()
+//const parseValue = value => new Date(value)
+//const paeseLiteral = ast => ast.value
+
+
+// リゾルバはスキーマの定義を満たす
+// スキーマで定義されたフィールド名と同じ名前を持ち，スキーマで定義されたデータ型の結果を返す
+
 const resolvers = {
     Query: {
         totalPhoto: () => photos.length,
-        allPhotos: () => photos
+        allPhotos: (parent, args) => {
+            args.after
+        }
     },
+
     Mutation: {
         // args変数は{name.description}2つのフィールドを含むオブジェクト
         postPhoto(parent, args) {
             let newPhoto = {
                 id: _id++,
-                ...args.input
+                ...args.input,
+                created: new Date()
             }
             photos.push(newPhoto)
             return newPhoto
@@ -133,8 +153,19 @@ const resolvers = {
             .map(tag => tag.photoID)
             .map(photoID => photos.find(p => p.id == photoID))
         
-    }
+    },
 
+    // GraphQLScalarTypeを用いてカスタムスカラー用のリゾルバを作成
+    DateTime: new GraphQLScalarType ({
+        name: `DateTime`,
+        description: `A valid date time value.`,
+        // 新しいスカラー型を作成する場合parseValue, serialize, parseLiteralを追加する必要がある(DateTypeスカラーを実装するフィールドまたは，引数を処理)
+        parseValue: value => new Date(value),
+        // ISO日時フォーマットの文字列を返す
+        serialize: value => new Date(value).toISOString(),
+        // クエリからASTでパースされた値の取得
+        parseLiteral: ast => ast.value
+    })
 }
 
 // サーバーのインスタンス作成

@@ -1,5 +1,7 @@
-// apollo-serverモジュールの読み込み
-const { ApolloServer } = require('apollo-server')
+const expressPlayground = require('graphql-playground-middleware-express')
+// apollo-server-expressとexpressの読み込み
+const { ApolloServer } = require('apollo-server-express')
+const express = require('express')
 // graphqlモジュールの読み込み
 const { GraphQLScalarType } = require('graphql')
 
@@ -168,15 +170,18 @@ const resolvers = {
     })
 }
 
+let app = express()
+
 // サーバーのインスタンス作成
 // その際，typeDefs(スキーマ)とリゾルバを引数に取る
-const server = new ApolloServer({
-    typeDefs,
-    resolvers
-})
+const server = new ApolloServer({ typeDefs, resolvers })
+server.applyMiddleware({ app })
+app.get('/', (rep, res) => res.end('Welcome to the PhotoShare API'))
+app.get('/playground', expressPlayground({ endpoint: '/graphql'}))
+app.listen({ port: 4000 }, () => 
+    console.log('GraphQL Server running @http://localhost4000${server.graphqlPath}')
+)
 
 // webサーバの起動
 // サーバーに対してlisten関数を実行することで、httpサーバーが待ち受けを開始
-server
-    .listen()
-    .then(({url}) => console.log('GraphQL Server running on ${url}'))
+//server.listen().then(({url}) => console.log('GraphQL Server running on ${url}'))

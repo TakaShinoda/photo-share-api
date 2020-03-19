@@ -1,65 +1,14 @@
-const expressPlayground = require('graphql-playground-middleware-express')
+
 // apollo-server-expressとexpressの読み込み
 const { ApolloServer } = require('apollo-server-express')
+
 const express = require('express')
+const expressPlayground = require('graphql-playground-middleware-express').default
+
 // graphqlモジュールの読み込み
 const { GraphQLScalarType } = require('graphql')
 
-// 文字列としてスキーマを定義
-const typeDefs = `
-    # カスタムスカラー型
-    scalar DateTime
 
-    type User {
-        githubLogin: ID!
-        name: String
-        avatar: String
-        postedPhotos: [Photo!]!
-        # ユーザが写っている写真のリストを返す
-        inPhotos: [Photo!]!
-    }
-
-    # enum型の定義
-    enum PhotoCategory {
-        SELFIE
-        PORTRAIT
-        ACTION
-        LANDSCAPE
-        GRAPHIC
-    }
-
-    # photo型の定義
-    type Photo {
-        id: ID!
-        url: String!
-        name: String!
-        description: String
-        category: PhotoCategory!
-        postedBy: User!
-        # タグ付けされているユーザのリストを返す
-        taggedUsers: [User!]!
-        created: DateTime!
-    }
-
-    #入力型の定義
-    input PostPhotoInput {
-        name: String!
-        #categoryフィールドを指定しない場合デフォルトでPORTRAITが適用
-        category: PhotoCategory=PORTRAIT
-        description: String
-    }
-
-    # allphotosはPhotoを返す
-    type Query {
-        totalPhoto: Int!
-        allPhotos(after: DateTime): [Photo!]!
-    }
-
-    # Mutationによって新たに投稿されたPhotoを返す
-    type Mutation {
-        postPhoto(input: PostPhotoInput!): Photo!
-    }
-`
 
 let _id = 0
 let users = [
